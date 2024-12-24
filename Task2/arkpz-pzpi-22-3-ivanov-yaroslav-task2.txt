@@ -1,0 +1,1009 @@
+﻿Харківський національний університет радіоелектроніки
+Факультет комп'ютерних наук
+Катедра програмної інженерії
+
+
+
+
+ЗВІТ
+до лабораторної роботи №2
+з дисципліни  «Аналіз та рефакторинг коду»
+на тему: «РОЗРОБКА БАЗИ ДАНИХ ДЛЯ СЕРВЕРНОЇ ЧАСТИНИ ПРОГРАМНОЇ СИСТЕМИ ТА ПРИКЛАДНОГО ПРОГРАМНОГО ІНТЕРФЕЙСУ»
+
+
+
+Виконав
+ст. гр. ПЗПІ-22-3
+Іванов Ярослав В’ячеславович
+
+Перевірив
+ст. викладач катедри ПІ
+Сокорчук Ігор Петрович
+
+
+
+Харків 2024
+1 МЕТА РОБОТИ
+
+     Розробити базу даних для серверної частини  програмної системи та прикладного програмного інтерфейсу.
+     
+2 ХІД РОБОТИ
+
+     У ході виконання лабораторної роботи було розроблено програмний інтерфейс для програмної системи обліку користувачів у фітнес-студії. Реалізацію здійснено за допомогою Node.js із використанням бібліотеки Mongoose для роботи з базою даних MongoDB. Усі необхідні компоненти інтегровано, забезпечивши ефективну взаємодію між програмною логікою та базою даних.
+     На першому етапі було створено модель бази даних, яка описує структуру даних для обліку користувачів. Для цього використовувалася бібліотека Mongoose, яка забезпечує обробку MongoDB. У рамках цього етапу було визначено основні атрибути користувача, такі як ім’я, прізвище, контактна інформація, дані про абонемент та відвідування.
+     Наступним етапом було розроблено RESTful API ендпоїнти для роботи з базою даних. Було реалізовано такий функціонал:
+* Реєстрація та авторизація користувача програмної системи;
+* Управління обліковими записами користувачів, зокрема заповнення та
+оновлення особистих даних та фізичних показників;
+* Надання адміністраторам фітнес-студії інструментів для  заповнення 
+інформації про фітнес-студію та перегляд статистики відвідувань.
+     Для тестування взаємодії між API та базою даних було налаштовано середовище MongoDB. Під час роботи виконано перевірку операцій створення, читання, оновлення та видалення (CRUD), що підтвердило стабільність і коректність роботи розроблених функцій. Код специфікацій програмного інтерфейсу наведено у додатку Г. Код взаємодії між сервером, клієнтом та базою даних наведено у додатку Д.
+     Окрім програмної частини, було створено діаграму прецедентів, яка описує основні сценарії взаємодії користувачів із системою, включаючи адміністратора фітнес студії, який має змогу редагувати дані студії, а також адміністратора, що займається обліком відвідувань. Діаграми прецендентів наведено у додатку А. Також було розроблено ER-діаграму для відображення зв'язків між об'єктами бази даних, зокрема таблиць користувачів, фітнес студій та тренувань. ER-діаграму наведено у додатку Б. Також було розроблено діаграму структури бази даних. Діаграму структури бази даних наведено у додатку В.
+     Результати роботи підтвердили успішне впровадження системи обліку користувачів у фітнес-студії, яка є зручною та масштабованою для подальшого розвитку.
+     Відео із демонстрацією виконаної роботи наведено у додатку Е.
+
+ВИСНОВКИ
+
+     У результаті виконання лабораторної роботи було розроблено програмний інтерфейс для програмної системи обліку користувачів у фітнес-студії. Система дозволяє ефективно управляти даними користувачів, здійснювати облік відвідувань, а також забезпечує зручний інтерфейс для взаємодії з базою даних MongoDB. Використання Node.js із Mongoose сприяло швидкій розробці та інтеграції компонентів системи. Окрім цього, створення ER-діаграми та діаграми прецедентів дозволило структурувати логіку системи й оптимізувати її функціонал.
+     
+     
+ДОДАТОК А
+UML діаграма прецедентів
+
+  
+Рисунок А.1 – Діаграма прецедентів реєстрації та авторизації
+
+
+Рисунок А.2 – Діаграма прецедентів створення цілей та рекомендацій
+
+
+
+Рисунок А.3 – Діаграма прецедентів дій над фітнес-студіями і тренуваннями
+ДОДАТОК Б
+ER діаграма даних
+	
+
+
+Рисунок Б.1 – ER діаграма даних
+
+
+
+ДОДАТОК В
+Діаграма структури бази даних
+
+
+
+Рисунок В.1 – Діаграма структури бази даних
+
+ДОДАТОК Г
+Специфікація прикладного програмного інтерфейсу
+
+001 {
+002   "openapi": "3.0.0",
+003   "info": {
+004     "title": "My project API",
+005     "description": "Here are APIs for my project"
+006   },
+007   "components": {
+008     "securitySchemes": {
+009       "bearerAuth": {
+010         "type": "http",
+011         "scheme": "bearer",
+012         "bearerFormat": "JWT",
+013         "description": "JWT authorization using the access token."
+014       }
+015     },
+016     "schemas": {
+017       "User": {
+018         "type": "object",
+019         "required": [
+020           "id",
+021           "email",
+022           "password",
+023           "roles"
+024         ],
+025         "properties": {
+026           "id": {
+027             "type": "string"
+028           },
+029           "email": {
+030             "type": "string"
+031           },
+032           "password": {
+033             "type": "string"
+034           },
+035           "name": {
+036             "type": "string"
+037           },
+038           "birthDate": {
+039             "type": "string",
+040             "format": "date"
+041           },
+042           "height": {
+043             "type": "string"
+044           },
+045           "weight": {
+046             "type": "string"
+047           },
+048           "country": {
+049             "type": "string"
+050           },
+051           "gender": {
+052             "type": "string"
+053           },
+054           "device": {
+055             "type": "string"
+056           },
+057           "roles": {
+058             "type": "array",
+059             "items": {
+060               "type": "string"
+061             }
+062           },
+063           "notifications": {
+064             "type": "array",
+065             "items": {
+066               "type": "string"
+067             }
+068           },
+069           "goals": {
+070             "type": "array",
+071             "items": {
+072               "type": "string"
+073             }
+074           },
+075           "userFitnessStudios": {
+076             "type": "array",
+077             "items": {
+078               "type": "string"
+079             }
+080           }
+081         }
+082       },
+083       "Device": {
+084         "type": "object",
+085         "required": [
+086           "id",
+087           "status",
+088           "sendDataFrequency",
+089           "user"
+090         ],
+091         "properties": {
+092           "id": {
+093             "type": "string"
+094           },
+095           "status": {
+096             "type": "string"
+097           },
+098           "sendDataFrequency": {
+099             "type": "number"
+100           },
+101           "user": {
+102             "type": "string"
+103           },
+104           "trainings": {
+105             "type": "array",
+106             "items": {
+107               "type": "string"
+108             }
+109           }
+110         }
+111       },
+112       "FitnessStudio": {
+113         "type": "object",
+114         "required": [
+115           "id",
+116           "studioName",
+117           "address",
+118           "email"
+119         ],
+120         "properties": {
+121           "id": {
+122             "type": "string"
+123           },
+124           "studioName": {
+125             "type": "string"
+126           },
+127           "address": {
+128             "type": "string"
+129           },
+130           "email": {
+131             "type": "string"
+132           },
+133           "userFitnessStudios": {
+134             "type": "array",
+135             "items": {
+136               "type": "string"
+137             }
+138           }
+139         }
+140       },
+141       "Goal": {
+142         "type": "object",
+143         "required": [
+144           "id",
+145           "content",
+146           "startDate",
+147           "finishDate",
+148           "user"
+149         ],
+150         "properties": {
+151           "id": {
+152             "type": "string"
+153           },
+154           "content": {
+155             "type": "string"
+156           },
+157           "startDate": {
+158             "type": "string",
+159             "format": "date"
+160           },
+161           "finishDate": {
+162             "type": "string",
+163             "format": "date"
+164           },
+165           "user": {
+166             "type": "string"
+167           }
+168         }
+169       },
+170       "Notification": {
+171         "type": "object",
+172         "required": [
+173           "id",
+174           "type",
+175           "content",
+176           "notificationDate",
+177           "user"
+178         ],
+179         "properties": {
+180           "id": {
+181             "type": "string"
+182           },
+183           "type": {
+184             "type": "string"
+185           },
+186           "content": {
+187             "type": "string"
+188           },
+189           "notificationDate": {
+190             "type": "string",
+191             "format": "date"
+192           },
+193           "user": {
+194             "type": "string"
+195           }
+196         }
+197       },
+198       "Role": {
+199         "type": "object",
+200         "required": [
+201           "id",
+202           "value"
+203         ],
+204         "properties": {
+205           "id": {
+206             "type": "string"
+207           },
+208           "value": {
+209             "type": "string"
+210           }
+211         }
+212       },
+213       "TrainingData": {
+214         "type": "object",
+215         "required": [
+216           "id",
+217           "sendingTime",
+218           "burnedCalories",
+219           "heartRate",
+220           "steps",
+221           "training"
+222         ],
+223         "properties": {
+224           "id": {
+225             "type": "string"
+226           },
+227           "sendingTime": {
+228             "type": "string",
+229             "format": "date-time"
+230           },
+231           "burnedCalories": {
+232             "type": "number"
+233           },
+234           "heartRate": {
+235             "type": "number"
+236           },
+237           "steps": {
+238             "type": "number"
+239           },
+240           "training": {
+241             "type": "string"
+242           }
+243         }
+244       },
+245       "Training": {
+246         "type": "object",
+247         "required": [
+248           "id",
+249           "status",
+250           "startTime",
+251           "endTime",
+252           "device",
+253           "userFitnessStudio"
+254         ],
+255         "properties": {
+256           "id": {
+257             "type": "string"
+258           },
+259           "status": {
+260             "type": "string"
+261           },
+262           "startTime": {
+263             "type": "string",
+264             "format": "date-time"
+265           },
+266           "endTime": {
+267             "type": "string",
+268             "format": "date-time"
+269           },
+270           "device": {
+271             "type": "string"
+272           },
+273           "userFitnessStudio": {
+274             "type": "string"
+275           },
+276           "trainingDatas": {
+277             "type": "array",
+278             "items": {
+279               "type": "string"
+280             }
+281           }
+282         }
+283       },
+284       "UserFitnessStudio": {
+285         "type": "object",
+286         "required": [
+287           "id",
+288           "user",
+289           "fitnessStudio"
+290         ],
+291         "properties": {
+292           "id": {
+293             "type": "string"
+294           },
+295           "user": {
+296             "type": "string"
+297           },
+298           "fitnessStudio": {
+299             "type": "string"
+300           },
+301           "trainings": {
+302             "type": "array",
+303             "items": {
+304               "type": "string"
+305             }
+306           }
+307         }
+308       }
+309     }
+310   },
+311   "security": [
+312     {
+313       "bearerAuth": []
+314     }
+315   ],
+316   "paths": {
+317     "/api/admin/backup": {
+318       "post": {
+319         "summary": "Backup the database",
+320         "tags": [
+321           "Admin"
+322         ],
+323         "responses": {
+324           "200": {
+325             "description": "Backup endpoint is not yet implemented",
+326             "content": {
+327               "application/json": {
+328                 "schema": {
+329                   "type": "object",
+330                   "properties": {
+331                     "message": {
+332                       "type": "string",
+333                       "example": "Backup endpoint is not yet implemented"
+334                     }
+335                   }
+336                 }
+337               }
+338             }
+339           }
+340         }
+341       }
+342     },
+343     "/api/admin/restore": {
+344       "post": {
+345         "summary": "Restore the database",
+346         "tags": [
+347           "Admin"
+348         ],
+349         "responses": {
+350           "200": {
+351             "description": "Restore endpoint is not yet implemented",
+352             "content": {
+353               "application/json": {
+354                 "schema": {
+355                   "type": "object",
+356                   "properties": {
+357                     "message": {
+358                       "type": "string",
+359                       "example": "Restore endpoint is not yet implemented"
+360                     }
+361                   }
+362                 }
+363               }
+364             }
+365           }
+366         }
+367       }
+368     },
+369     "/api/analytics/recommendations": {
+370       "post": {
+371         "summary": "Create a new recommendation",
+372         "tags": [
+373           "Analytics"
+374         ],
+375         "responses": {
+376           "200": {
+377             "description": "Create recommendation endpoint is not yet implemented",
+378             "content": {
+379               "application/json": {
+380                 "schema": {
+381                   "type": "object",
+382                   "properties": {
+383                     "message": {
+384                       "type": "string",
+385                       "example": "Create recommendation endpoint is not yet implemented"
+386                     }
+387                   }
+388                 }
+389               }
+390             }
+391           }
+392         }
+393       }
+394     },
+395     "/api/analytics/recommendations/{id}": {
+396       "get": {
+397         "summary": "Get recommendation by ID",
+398         "tags": [
+399           "Analytics"
+400         ],
+401         "parameters": [
+402           {
+403             "in": "path",
+404             "name": "id",
+405             "schema": {
+406               "type": "string"
+407             },
+408             "required": true,
+409             "description": "Recommendation ID"
+410           }
+411         ],
+412         "responses": {
+413           "200": {
+414             "description": "Get recommendation by ID endpoint is not yet implemented",
+415             "content": {
+416               "application/json": {
+417                 "schema": {
+418                   "type": "object",
+419                   "properties": {
+420                     "message": {
+421                       "type": "string",
+422                       "example": "Get recommendation by ID endpoint is not yet implemented"
+423                     }
+424                   }
+425                 }
+426               }
+427             }
+428           }
+429         }
+430       }
+431     },
+432     "/api/auth/registration": {
+433       "post": {
+434         "summary": "Registration of new user",
+435         "tags": [
+436           "Auth"
+437         ],
+438         "requestBody": {
+439           "required": true,
+440           "content": {
+441             "application/json": {
+442               "schema": {
+443                 "type": "object",
+444                 "properties": {
+445                   "email": {
+446                     "type": "string",
+447                     "example": "user@example.com"
+448                   },
+449                   "password": {
+450                     "type": "string",
+451                     "example": "password123"
+452                   }
+453                 }
+454               }
+455             }
+456           }
+457         },
+458         "responses": {
+459           "200": {
+460             "description": "User successfully registered",
+461             "content": {
+462               "application/json": {
+463                 "schema": {
+464                   "type": "object",
+465                   "properties": {
+466                     "user": {
+467                       "type": "object",
+468                       "$ref": "#/components/schemas/User"
+469                     },
+470                     "accessToken": {
+471                       "type": "string"
+472                     },
+473                     "refreshToken": {
+474                       "type": "string"
+475                     }
+476                   }
+477                 }
+478               }
+479             }
+480           }
+481         }
+482       }
+483     },
+484     "/api/auth/login": {
+485       "post": {
+486         "summary": "Log in of user",
+487         "tags": [
+488           "Auth"
+489         ],
+490         "requestBody": {
+491           "required": true,
+492           "content": {
+493             "application/json": {
+494               "schema": {
+495                 "type": "object",
+496                 "required": [
+497                   "email",
+498                   "password"
+499                 ],
+500                 "properties": {
+501                   "email": {
+502                     "type": "string",
+503                     "example": "user@example.com"
+504                   },
+505                   "password": {
+506                     "type": "string",
+507                     "example": "password123"
+508                   }
+509                 }
+510               }
+511             }
+512           }
+513         },
+514         "responses": {
+515           "200": {
+516             "description": "User successfully logged in",
+517             "content": {
+518               "application/json": {
+519                 "schema": {
+520                   "type": "object",
+521                   "properties": {
+522                     "accessToken": {
+523                       "type": "string"
+524                     },
+525                     "refreshToken": {
+526                       "type": "string"
+527                     }
+528                   }
+529                 }
+530               }
+531             }
+532           }
+533         }
+534       }
+535     },
+536     "/api/auth/logout": {
+537       "post": {
+538         "summary": "Log out of user",
+539         "tags": [
+540           "Auth"
+541         ],
+542         "responses": {
+543           "200": {
+544             "description": "User successfully logged out",
+545             "content": {
+546               "application/json": {
+547                 "schema": {
+548                   "type": "object",
+549                   "properties": {
+550                     "message": {
+551                       "type": "string"
+552                     }
+553                   }
+554                 }
+555               }
+556             }
+557           }
+558         }
+559       }
+560     },
+561     "/api/auth/refresh": {
+562       "post": {
+563         "summary": "Refresh of user token",
+564         "tags": [
+565           "Auth"
+566         ],
+567         "responses": {
+568           "200": {
+569             "description": "Token successfully updated",
+570             "content": {
+571               "application/json": {
+572                 "schema": {
+573                   "type": "object",
+574                   "properties": {
+575                     "accessToken": {
+576                       "type": "string"
+577                     },
+578                     "refreshToken": {
+579                       "type": "string"
+580                     }
+581                   }
+582                 }
+583               }
+584             }
+585           }
+586         }
+587       }
+588     }
+ДОДАТОК Д
+Код взаємодії між сервером, клієнтом та базою даних
+
+     Приклад взаємодії з базою даних:
+
+001 const DeviceModel = require("../models/Device");
+002 const GoalModel = require("../models/Goal");
+003 const NotificationModel = require("../models/Notification");
+004 const RoleModel = require("../models/Role");
+005 const UserModel = require("../models/User");
+006 const UserFitnessStudioModel = require("../models/UserFitnessStudio");
+007 const ApiError = require("../errors/apiError");
+008
+009 class UserService {
+010   async getUserById(id) {
+011     const user = await UserModel.findById(id);
+012
+013     if (!user) {
+014       throw ApiError.NotFound("User not found");
+015     }
+016
+017     return user;
+018   }
+019
+020   async editPersonalData(id, updatedFields) {
+021     if (
+022       !updatedFields.name ||
+023       typeof updatedFields.name !== "string" ||
+024       updatedFields.name.trim() === ""
+025     ) {
+026       throw ApiError.BadRequest(
+027         "Name is required and must be a non-empty string"
+028       );
+029     }
+030
+031     if (
+032       !updatedFields.birthDate ||
+033       isNaN(Date.parse(updatedFields.birthDate))
+034     ) {
+035       throw ApiError.BadRequest(
+036         "Birth date is required and must be a valid date"
+037       );
+038     }
+039
+040     if (
+041       !updatedFields.height ||
+042       typeof updatedFields.height !== "string" ||
+043       updatedFields.height.trim() === ""
+044     ) {
+045       throw ApiError.BadRequest(
+046         "Height is required and must be a non-empty string"
+047       );
+048     }
+049
+050     if (
+051       !updatedFields.weight ||
+052       typeof updatedFields.weight !== "string" ||
+053       updatedFields.weight.trim() === ""
+054     ) {
+055       throw ApiError.BadRequest(
+056         "Weight is required and must be a non-empty string"
+057       );
+058     }
+059
+060     if (
+061       !updatedFields.country ||
+062       typeof updatedFields.country !== "string" ||
+063       updatedFields.country.trim() === ""
+064     ) {
+065       throw ApiError.BadRequest(
+066         "Country is required and must be a non-empty string"
+067       );
+068     }
+069
+070     if (
+071       !updatedFields.gender ||
+072       typeof updatedFields.gender !== "string" ||
+073       updatedFields.gender.trim() === ""
+074     ) {
+075       throw ApiError.BadRequest(
+076         "Gender is required and must be a non-empty string"
+077       );
+078     }
+079
+080     const user = await UserModel.findById(id);
+081
+082     if (!user) {
+083       throw ApiError.NotFound("User not found");
+084     }
+085
+086     Object.assign(user, updatedFields);
+087
+088     await user.save();
+089
+090     return user;
+091   }
+092
+093   async deleteUserById(id) {
+094     const user = await UserModel.findByIdAndDelete(id);
+095
+096     if (!user) {
+097       throw ApiError.NotFound("User not found");
+098     }
+099
+100     await GoalModel.deleteMany({ user: user._id });
+101
+102     await NotificationModel.deleteMany({ user: user._id });
+103
+104     if (user.device) {
+105       await DeviceModel.findByIdAndDelete(user.device);
+106     }
+107
+108     await UserFitnessStudioModel.deleteMany({ user: user._id });
+109
+110     return user;
+111   }
+112
+113   async getAllUsers() {
+114     const users = await UserModel.find();
+115
+116     if (users.length === 0) {
+117       throw ApiError.NotFound("Users not found");
+118     }
+119
+120     return users;
+121   }
+122
+123   async addUserRole(userId, role) {
+124     const user = await UserModel.findById(userId);
+125
+126     if (!user) {
+127       throw ApiError.NotFound("User not found");
+128     }
+129
+130     const userRole = await RoleModel.findOne({ value: role });
+131
+132     if (!userRole) {
+133       throw ApiError.NotFound("Role not found");
+134     }
+135
+136     const userHasRole = user.roles.includes(role);
+137
+138     if (!userHasRole) {
+139       user.roles.push(userRole.value);
+140     } else {
+141       throw ApiError.BadRequest("User already has this role");
+142     }
+143
+144     user.markModified("roles");
+145
+146     await user.save();
+147
+148     return user;
+149   }
+150
+151   async deleteUserRole(userId, role) {
+152     const user = await UserModel.findById(userId);
+153
+154     if (!user) {
+155       throw ApiError.NotFound("User not found");
+156     }
+157
+158     const userRole = await RoleModel.findOne({ value: role });
+159
+160     if (!userRole) {
+161       throw ApiError.NotFound("Role not found");
+162     }
+163
+164     const userHasRole = user.roles.includes(role);
+165
+166     if (!userHasRole) {
+167       throw ApiError.BadRequest("User does not have this role");
+168     }
+169
+170     user.roles = user.roles.filter((roles) => roles !== role);
+171
+172     await user.save();
+173
+174     return user;
+175   }
+176
+177   async getFitnessStudiosByUserId(userId) {
+178     const userFitnessStudios = await UserFitnessStudioModel.find({
+179       user: userId,
+180     }).populate("fitnessStudio");
+181
+182     if (userFitnessStudios.length === 0) {
+183       throw ApiError.NotFound("No fitness studios found for this user");
+184     }
+185
+186     return userFitnessStudios.map((ufs) => ufs.fitnessStudio);
+187   }
+188 }
+189
+190 module.exports = new UserService();
+
+     Приклад взаємодії з клієнтом:
+
+001 const { validationResult } = require("express-validator");
+002 const fitnessStudioService = require("../services/FitnessStudioService");
+003 const ApiError = require("../errors/apiError");
+004 const FitnessStudioDto = require("../dtos/fitness-studio-dto");
+005
+006 class FitnessStudioController {
+007   async createFitnessStudio(req, res, next) {
+008     try {
+009       const errors = validationResult(req);
+010       if (!errors.isEmpty()) {
+011         return next(ApiError.BadRequest("Validation error", errors.array()));
+012       }
+013
+014       const fitnessStudio = await fitnessStudioService.createFitnessStudio(
+015         req.body
+016       );
+017       const fitnessStudioDto = new FitnessStudioDto(fitnessStudio);
+018
+019       return res.status(200).json(fitnessStudioDto);
+020     } catch (e) {
+021       next(e);
+022     }
+023   }
+024
+025   async addUserToFitnessStudio(req, res, next) {
+026     try {
+027       const { userId, fitnessStudioId } = req.body;
+028       const userFitnessStudio =
+029         await fitnessStudioService.addUserToFitnessStudio(
+030           userId,
+031           fitnessStudioId
+032         );
+033
+034       return res.status(200).json(userFitnessStudio);
+035     } catch (e) {
+036       next(e);
+037     }
+038   }
+039
+040   async removeUserFromFitnessStudio(req, res, next) {
+041     try {
+042       const { userId, fitnessStudioId } = req.body;
+043       await fitnessStudioService.removeUserFromFitnessStudio(
+044         userId,
+045         fitnessStudioId
+046       );
+047
+048       return res.status(200).json({
+049         message: "User successfully removed from fitness studio",
+050       });
+051     } catch (e) {
+052       next(e);
+053     }
+054   }
+055
+056   async getAllUniqueUserFitnessStudioCombinations(req, res, next) {
+057     try {
+058       const combinations =
+059         await fitnessStudioService.getAllUniqueUserFitnessStudioCombinations();
+060
+061       return res.json(combinations);
+062     } catch (e) {
+063       next(e);
+064     }
+065   }
+066
+067   async getFitnessStudioById(req, res, next) {
+068     try {
+069       const { id } = req.params;
+070       const fitnessStudio = await fitnessStudioService.getFitnessStudioById(id);
+071       const fitnessStudioDto = new FitnessStudioDto(fitnessStudio);
+072
+073       return res.status(200).json(fitnessStudioDto);
+074     } catch (e) {
+075       next(e);
+076     }
+077   }
+078
+079   async updateFitnessStudioById(req, res, next) {
+080     try {
+081       const { id } = req.params;
+082       const fitnessStudio = await fitnessStudioService.updateFitnessStudioById(
+083         id,
+084         req.body
+085       );
+086       const fitnessStudioDto = new FitnessStudioDto(fitnessStudio);
+087
+088       return res.status(200).json(fitnessStudioDto);
+089     } catch (e) {
+090       next(e);
+091     }
+092   }
+093
+094   async deleteFitnessStudioById(req, res, next) {
+095     try {
+096       const { id } = req.params;
+097       await fitnessStudioService.deleteFitnessStudioById(id);
+098
+099       return res
+100         .status(200)
+101         .json({ message: "Fitness studio successfully deleted" });
+102     } catch (e) {
+103       next(e);
+104     }
+105   }
+106
+107   async getAllFitnessStudios(req, res, next) {
+108     try {
+109       const fitnessStudios = await fitnessStudioService.getAllFitnessStudios();
+110       const fitnessStudiosDto = fitnessStudios.map(
+111         (studio) => new FitnessStudioDto(studio)
+112       );
+113
+114       return res.status(200).json(fitnessStudiosDto);
+115     } catch (e) {
+116       next(e);
+117     }
+118   }
+119
+120   async getUsersByFitnessStudioId(req, res, next) {
+121     try {
+122       const { fitnessStudioId } = req.params;
+123       const users = await fitnessStudioService.getUsersByFitnessStudioId(
+124         fitnessStudioId
+125       );
+126
+127       return res.status(200).json(users);
+128     } catch (e) {
+129       next(e);
+130     }
+131   }
+132 }
+133
+134 module.exports = new FitnessStudioController();
+ДОДАТОК Е
+Посилання на відеозвіт
+
+     Посилання :  https://youtu.be/9bIEcWhtykQ 
+
+
+
+
+
