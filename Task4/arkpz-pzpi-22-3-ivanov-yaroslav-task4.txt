@@ -1,0 +1,397 @@
+﻿Харківський національний університет радіоелектроніки
+Факультет комп'ютерних наук
+Кафедра програмної інженерії
+
+
+
+
+ЗВІТ
+до лабораторної роботи №4
+з дисципліни  «Аналіз та рефакторинг коду»
+на тему: «РОЗРОБКА IoT КЛІЄНТА 
+(БІЗНЕС-ЛОГІКИ ТА ФУНКЦІЙ НАЛАШТУВАННЯ)»
+
+
+
+Виконав
+ст. гр. ПЗПІ-22-3
+Іванов Ярослав В'ячеславович
+
+Перевірив
+ст. викладач кафедри ПІ
+Сокорчук Ігор Петрович
+
+
+
+
+Харків 2024
+1 МЕТА РОБОТИ
+
+     Розробити програмне забезпечення для IoT або SmartDevice пристрою, створеного на базі будь-якої поширеної на сьогодні платформи, придатної для реалізації вбудованих систем.
+     
+2 ХІД РОБОТИ
+
+     У ході виконання лабораторної роботи було обрано платформу на базі якої було створено IoT пристрій, такою стала плата ESP32. 
+     Далі було створено UML діаграму прецедентів, яка відображатиме основні сценарії взаємодії користувача та IoT пристрою. У діаграмі зазначені актори, такі як користувач та пристрій, а також прецеденти, що демонструють взаємодію між ними, зокрема запит даних, обробка тренувальних даних, відправка пульсу та кроків, та отримання сповіщень. Також було створено UML діаграму діяльності, яка показує процеси, що відбуваються на стороні IoT клієнта. Ця діаграма описує алгоритм виконання дій, таких як завантаження даних з пристрою, обробка отриманих даних, генерування результатів тренування та перевірка пульсу, а також взаємодія з іншими частинами системи, зокрема з користувачем.
+     UML діаграми діяльності та прецендентів для IoT клієнта наведено у додатку А.
+     Після розробки діаграм було написано програмне забезпечення для IoT клієнта, яке реалізовує необхідну функціональність, а також забезпечує можливість зчитування даних з пристроїв, їх обробку та передачу результатів користувачеві та до серверної частини системи. Також було створено  програмну реалізацію бізнес-логіки та налаштувань. Це включає в себе математичні функції, що виконують обробку даних, зокрема аналіз серцебиття та тренувальних результатів, а також налаштування IoT клієнта для підключення до мережі, налаштування часу та адаптацію пристрою під його потреби.
+     Код реалізації даних функцій наведено у додатку Б.
+     Отже, у ході роботи було розроблено програмне забезпечення для IoT клієнта з бізнес-логікою та функціями налаштування. Створено UML діаграми прецедентів і діяльності та розроблено математичні функції для обробки даних. 
+     Відео із демонстрацією виконаної роботи наведено у додатку В.
+     
+ВИСНОВКИ
+
+     У результаті виконання лабораторної роботи було створено діаграми діяльності та прецедентів для IoT клієнту програмної системи. Також було розроблено код для функцій бізнес логіки та налаштування клієнта IoT.
+     
+     
+ДОДАТОК А
+UML діаграми прецедентів та діяльності для IoT клієнта
+
+
+Рисунок А.1 – Діаграма діяльності IoT клієнта
+
+
+Рисунок А.2 – Діаграма прецедентів IoT клієнта
+
+
+
+
+
+
+
+ДОДАТОК Б
+Код програмної реалізації бізнес логіки та функцій налаштування ІоТ клієнта
+
+001 #include <ArduinoJson.h>
+002 #include <HTTPClient.h>
+003 #include <math.h>
+004 #include <string.h>
+005 #include <time.h>
+006 #include <vector>
+007 #include <NTPClient.h>
+008 #include <WiFiUdp.h>
+009 #include <WebServer.h>
+010 #include <WiFi.h>
+011
+012 float heartRate = 0.0;
+013 int steps = 0;
+014 std::vector<TrainingData> trainingDataBuffer;
+015 int sendDataFrequency = 60;
+016 static bool userDataFetched = false;
+017 static float maxHeartRate = 0.0;
+018 static float lowerBound = 0.0;
+019 static float upperBound = 0.0;
+020
+021 // Function to calculate age from birth date string
+022 int calculateAge(const char *birthDateStr) {
+023   struct tm tm;
+024   memset(&tm, 0, sizeof(tm));
+025   strptime(birthDateStr, "%Y-%m-%dT%H:%M:%S.%fZ", &tm);
+026   tm.tm_isdst = -1;
+027   time_t birthDate = mktime(&tm);
+028   time_t now = time(nullptr);
+029   struct tm *nowTm = gmtime(&now);
+030   now = mktime(nowTm);
+031   return (int)floor(difftime(now, birthDate) / (60 * 60 * 24 * 365.25));
+032 }
+033
+034 // Function to fetch device-specific data from server
+035 void fetchDeviceData() {
+036   HTTPClient http;
+037   String url = String(serverAddress) + "/api/devices/" + deviceID;
+038
+039   Serial.println("Sending GET request to: " + url);
+040   http.begin(url);
+041   int httpCode = http.GET();
+042
+043   if (httpCode > 0) {
+044     String response = http.getString();
+045     Serial.println("Device Data Response: " + response);
+046
+047     DynamicJsonDocument doc(1024);
+048     deserializeJson(doc, response);
+049
+050     const char *status = doc["status"];
+051     sendDataFrequency = doc["sendDataFrequency"];
+052     JsonArray trainings = doc["trainings"];
+053
+054     Serial.println();
+055   } else {
+056     Serial.printf("GET request failed, error: %s\n",
+057                   http.errorToString(httpCode).c_str());
+058   }
+059
+060   http.end();
+061 }
+062
+063 // Function to fetch user-specific data from server
+064 void fetchUserData() {
+065   HTTPClient http;
+066   String url = String(serverAddress) + "/api/users/" + userID;
+067
+068   Serial.println("Sending GET request to: " + url);
+069   http.begin(url);
+070   int httpCode = http.GET();
+071
+072   if (httpCode > 0) {
+073     String response = http.getString();
+074     Serial.println("User Data Response: " + response);
+075
+076     DynamicJsonDocument doc(1024);
+077     deserializeJson(doc, response);
+078
+079     const char *birthDateStr = doc["birthDate"];
+080     const char *sex = doc["sex"];
+081
+082     Serial.println();
+083
+084     int age = calculateAge(birthDateStr);
+085     Serial.printf("Age: %d", age);
+086     Serial.println();
+087     Serial.printf("Sex: %s", sex);
+088     Serial.println();
+089
+090     if (sex && strcmp(sex, "female") == 0) {
+091       maxHeartRate = 209 - 0.9f * age;
+092     } else if (sex && strcmp(sex, "male") == 0) {
+093       maxHeartRate = 214 - 0.8f * age;
+094     } else {
+095       Serial.println("Invalid sex value");
+096       return;
+097     }
+098
+099     lowerBound = 0.5f * maxHeartRate;
+100     upperBound = 0.85f * maxHeartRate;
+101     userDataFetched = true;
+102
+103     Serial.printf("Max Heart Rate: %.2f", maxHeartRate);
+104     Serial.println();
+105     Serial.printf("Lower Bound: %.2f", lowerBound);
+106     Serial.println();
+107     Serial.printf("Upper Bound: %.2f", upperBound);
+108     Serial.println();
+109     Serial.println();
+110   } else {
+111     Serial.printf("GET request failed, error: %s\n",
+112                   http.errorToString(httpCode).c_str());
+113   }
+114
+115   http.end();
+116 }
+117
+118 // Function to generate random training data
+119 void generateTrainingData() {
+120   heartRate = random(40, 200);
+121   steps = random(0, 100);
+122   unsigned long timestamp = getEpochTime();
+123
+124   TrainingData data = {heartRate, steps, timestamp};
+125   trainingDataBuffer.push_back(data);
+126 }
+127
+128 // Function to send training data to server
+129 void sendTrainingData() {
+130   HTTPClient http;
+131   String url = String(serverAddress) + "/api/training-datas";
+132
+133   for (const auto &td : trainingDataBuffer) {
+134     DynamicJsonDocument doc(1024);
+135     doc["sendingTime"] = getFormattedTime();
+136     doc["heartRate"] = td.heartRate;
+137     doc["steps"] = td.steps;
+138     doc["training"] = trainingID;
+139
+140     String payload;
+141     serializeJson(doc, payload);
+142
+143     Serial.println("Sending POST request to: " + url);
+144     Serial.println("Payload: " + payload);
+145
+146     http.begin(url);
+147     http.addHeader("Content-Type", "application/json");
+148     int httpCode = http.POST(payload);
+149     String response = http.getString();
+150
+151     Serial.println("Response: " + response);
+152     http.end();
+153   }
+154
+155   analyzeHeartRate();
+156   trainingDataBuffer.clear();
+157 }
+158
+159 // Function to analyze heart rate data and send notifications if necessary
+160 void analyzeHeartRate() {
+161   if (!userDataFetched) {
+162     fetchUserData();
+163   }
+164
+165   for (const auto &data : trainingDataBuffer) {
+166     String content;
+167     int roundedHeartRate = round(data.heartRate);
+168     if (roundedHeartRate > maxHeartRate) {
+169       content = "Heart rate exceeds maximum limit! Your heart rate is: " +
+170                 String(roundedHeartRate);
+171       sendNotification("Warning", content.c_str());
+172     } else if (roundedHeartRate > upperBound) {
+173       content = "Heart rate is above the upper bound! Your heart rate is: " +
+174                 String(roundedHeartRate);
+175       sendNotification("Warning", content.c_str());
+176     } else if (roundedHeartRate < lowerBound) {
+177       content = "Heart rate is below the lower bound! Your heart rate is: " +
+178                 String(roundedHeartRate);
+179       sendNotification("Warning", content.c_str());
+180     }
+181   }
+182 }
+183
+184 // Function to send notifications to the server
+185 void sendNotification(const char *type, const char *content) {
+186   HTTPClient http;
+187   String url = String(serverAddress) + "/api/notifications";
+188
+189   DynamicJsonDocument doc(512);
+190   doc["type"] = type;
+191   doc["content"] = content;
+192   doc["notificationDate"] = getFormattedTime();
+193   doc["user"] = userID;
+194
+195   String payload;
+196   serializeJson(doc, payload);
+197
+198   Serial.println("Sending POST request to: " + url);
+199   Serial.println("Payload: " + payload);
+200
+201   http.begin(url);
+202   http.addHeader("Content-Type", "application/json");
+203   int httpCode = http.POST(payload);
+204   String response = http.getString();
+205
+206   Serial.println("Notification Response: " + response);
+207   http.end();
+208 }
+209
+210 WiFiUDP ntpUDP;
+211 NTPClient timeClient(ntpUDP, "pool.ntp.org", 0, 60000);
+212
+213 // Function to setup time synchronization using NTP
+214 void setupTime() {
+215   configTime(0, 0, "pool.ntp.org", "time.nist.gov");
+216
+217   struct tm timeinfo;
+218   if (!getLocalTime(&timeinfo)) {
+219     Serial.println("Failed to obtain time");
+220     return;
+221   }
+222   Serial.println();
+223   Serial.print("Current time: ");
+224   Serial.println(&timeinfo, "%Y-%m-%d %H:%M:%S");
+225   Serial.println();
+226 }
+227
+228 // Function to get formatted time as a string
+229 String getFormattedTime() {
+230   timeClient.update();
+231   unsigned long epochTime = timeClient.getEpochTime();
+232   time_t rawTime = epochTime;
+233   struct tm *timeInfo = gmtime(&rawTime);
+234
+235   char buffer[25];
+236   strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%SZ", timeInfo);
+237   return String(buffer);
+238 }
+239
+240 // Function to get epoch time
+241 unsigned long getEpochTime() { return timeClient.getEpochTime(); }
+242
+243 const char *WIFI_SSID = "Wokwi-GUEST";
+244 const char *WIFI_PASSWORD = "";
+245
+246 WebServer server(80);
+247
+248 // Function to setup WiFi connection and HTTP server for WiFi configuration
+249 void setupWiFi() {
+250   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+251
+252   while (WiFi.status() != WL_CONNECTED) {
+253     delay(500);
+254     Serial.println("Connecting to WiFi...");
+255   }
+256   Serial.println("Connected to WiFi");
+257
+258   server.on("/", []() {
+259     String html =
+260         "<h1>WiFi Setup</h1>"
+261         "<form action='/setWiFi' method='POST'>"
+262         "<label>SSID: </label><input type='text' name='ssid'><br>"
+263         "<label>Password: </label><input type='password' name='password'><br>"
+264         "<input type='submit' value='Connect'>"
+265         "</form>";
+266     server.send(200, "text/html", html);
+267   });
+268
+269   server.on("/setWiFi", []() {
+270     if (server.hasArg("ssid") && server.hasArg("password")) {
+271       String ssid = server.arg("ssid");
+272       String password = server.arg("password");
+273
+274       Serial.print("Received SSID: ");
+275       Serial.println(ssid);
+276       Serial.print("Received Password: ");
+277       Serial.println(password);
+278
+279       WIFI_SSID = ssid.c_str();
+280       WIFI_PASSWORD = password.c_str();
+281
+282       server.send(200, "text/plain", "WiFi credentials received. Rebooting...");
+283       delay(2000);
+284       ESP.restart();
+285     } else {
+286       server.send(400, "text/plain", "SSID and Password are required!");
+287     }
+288   });
+289
+290   server.begin();
+291 }
+292
+293 const char* serverAddress =
+294     "https://localhost:5000";
+295 const char* userID = "676cd84f7967b4c65dc1ab07";
+296 const char* deviceID = "676cd9177967b4c65dc1ab1a";
+297 const char* trainingID = "676eb285dd7d20a46b19d586";
+298
+299 // Setup function to initialize serial communication, WiFi, time, and fetch initial data
+300 void setup() {
+301   Serial.begin(115200);
+302   setupWiFi();
+303   setupTime();
+304   fetchDeviceData();
+305   fetchUserData();
+306   generateTrainingData();
+307   sendTrainingData();
+308   analyzeHeartRate();
+309 }
+310
+311 // Loop function to periodically generate, send, and analyze training data
+312 void loop() {
+313   static unsigned long lastSendTime = 0;
+314   unsigned long currentTime = millis();
+315
+316   if (currentTime - lastSendTime >= sendDataFrequency * 1000) {
+317     generateTrainingData();
+318     sendTrainingData();
+319     analyzeHeartRate();
+320     lastSendTime = currentTime;
+321   }
+322
+323   delay(1000);
+324 }
+ДОДАТОК В
+Посилання на відео звіт
+
+     Посилання: https://youtu.be/hDAE6Ha_5Z4 
+
+
+
+
+

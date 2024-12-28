@@ -10,6 +10,7 @@
 #include "TimeConfig.h"
 #include "WiFiConfig.h"
 
+// Setup function to initialize serial communication, WiFi, time, and fetch initial data
 void setup() {
   Serial.begin(115200);
   setupWiFi();
@@ -21,6 +22,7 @@ void setup() {
   analyzeHeartRate();
 }
 
+// Loop function to periodically generate, send, and analyze training data
 void loop() {
   static unsigned long lastSendTime = 0;
   unsigned long currentTime = millis();

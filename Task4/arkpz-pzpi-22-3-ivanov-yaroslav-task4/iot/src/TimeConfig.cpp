@@ -5,6 +5,7 @@
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org", 0, 60000);
 
+// Function to setup time synchronization using NTP
 void setupTime() {
   configTime(0, 0, "pool.ntp.org", "time.nist.gov");
 
@@ -19,6 +20,7 @@ void setupTime() {
   Serial.println();
 }
 
+// Function to get formatted time as a string
 String getFormattedTime() {
   timeClient.update();
   unsigned long epochTime = timeClient.getEpochTime();
@@ -30,4 +32,5 @@ String getFormattedTime() {
   return String(buffer);
 }
 
+// Function to get epoch time
 unsigned long getEpochTime() { return timeClient.getEpochTime(); }

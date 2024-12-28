@@ -5,6 +5,7 @@ const char *WIFI_PASSWORD = "";
 
 WebServer server(80);
 
+// Function to setup WiFi connection and HTTP server for WiFi configuration
 void setupWiFi() {
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 

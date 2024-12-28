@@ -17,6 +17,7 @@ static float maxHeartRate = 0.0;
 static float lowerBound = 0.0;
 static float upperBound = 0.0;
 
+// Function to calculate age from birth date string
 int calculateAge(const char *birthDateStr) {
   struct tm tm;
   memset(&tm, 0, sizeof(tm));
@@ -29,6 +30,7 @@ int calculateAge(const char *birthDateStr) {
   return (int)floor(difftime(now, birthDate) / (60 * 60 * 24 * 365.25));
 }
 
+// Function to fetch device-specific data from server
 void fetchDeviceData() {
   HTTPClient http;
   String url = String(serverAddress) + "/api/devices/" + deviceID;
@@ -57,6 +59,7 @@ void fetchDeviceData() {
   http.end();
 }
 
+// Function to fetch user-specific data from server
 void fetchUserData() {
   HTTPClient http;
   String url = String(serverAddress) + "/api/users/" + userID;
@@ -111,6 +114,7 @@ void fetchUserData() {
   http.end();
 }
 
+// Function to generate random training data
 void generateTrainingData() {
   heartRate = random(40, 200);
   steps = random(0, 100);
@@ -120,6 +124,7 @@ void generateTrainingData() {
   trainingDataBuffer.push_back(data);
 }
 
+// Function to send training data to server
 void sendTrainingData() {
   HTTPClient http;
   String url = String(serverAddress) + "/api/training-datas";
@@ -150,6 +155,7 @@ void sendTrainingData() {
   trainingDataBuffer.clear();
 }
 
+// Function to analyze heart rate data and send notifications if necessary
 void analyzeHeartRate() {
   if (!userDataFetched) {
     fetchUserData();
@@ -174,6 +180,7 @@ void analyzeHeartRate() {
   }
 }
 
+// Function to send notifications to the server
 void sendNotification(const char *type, const char *content) {
   HTTPClient http;
   String url = String(serverAddress) + "/api/notifications";
