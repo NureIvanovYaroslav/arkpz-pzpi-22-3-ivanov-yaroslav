@@ -1,0 +1,256 @@
+﻿Харківський національний університет радіоелектроніки
+Факультет комп'ютерних наук
+Кафедра програмної інженерії
+
+
+
+
+ЗВІТ
+до лабораторної роботи №5
+з дисципліни  «Аналіз та рефакторинг коду»
+на тему: «РОЗГОРТАННЯ ПРОГРАМНОЇ СИСТЕМИ ТА ДЕМОНСТРАЦІЯ ЇЇ РОБОТИ»
+
+
+
+Виконав
+ст. гр. ПЗПІ-22-3
+Іванов Ярослав В’ячеславович
+
+Перевірив
+ст. викладач кафедри ПІ
+Сокорчук Ігор Петрович
+
+
+
+Харків 2024
+1 МЕТА РОБОТИ
+
+     Розгорнути програмну систему та продемонструвати її роботу
+     
+2 ХІД РОБОТИ
+
+     Під час виконання лабораторної роботи було проведено розгортання програмної системи відповідно до поставлених завдань. Було запущено скрипт для розгортання програмної системи. 
+     На першому етапі було виконано перевірку доступу до бази даних.  Після введення правильного пароля було підтверджено з'єднання з базою даних, що забезпечило можливість подальшого налаштування системи.
+     На другому етапі було проведено перевірку середовища розробки. Зокрема, було перевірено наявність встановленого Node.js на комп’ютері. У разі його відсутності автоматично було завантажено інсталятор необхідної версії. Після завантаження проведено інсталяцію Node.js з оновленням системної змінної середовища PATH. Це дозволило забезпечити доступність Node.js для роботи програмної системи. Після цього виконано перевірку встановленої версії, що підтвердило успішність виконаних дій.
+     Код реалізації даних функцій наведено у додатку А.
+     Далі було налаштовано роботу серверної частини проєкту. У відповідному каталозі було виконано інсталяцію всіх залежностей npm за допомогою іншого скрипту. Усі залежності були встановлені, і система готова до запуску.
+     На завершальному етапі виконано запуск серверної частини програмної системи. Сервер успішно стартував, і його функціональність стала доступною для тестування. Це дозволило перевірити функціональність, описану в розділі Vision & Scope, і підтвердити її відповідність очікуванням.
+     Було протестовано серверну та IoT частини. Усі дії виконано без помилок, що засвідчило готовність програмної системи до використання.
+     Відео із демонстрацією виконаної роботи наведено у додатку Б.
+
+ВИСНОВКИ
+
+     У результаті виконання роботи було реалізовано розгортання, налаштування і запуск програмної системи. Усі етапи виконано успішно, зокрема перевірку доступу до бази даних, налаштування середовища розробки, інсталяцію залежностей, запуск серверу та тестування серверної та IoT частин. Це підтверджує коректну роботу програмної системи та її відповідність вимогам, визначеним у розділі Vision & Scope.
+     
+
+
+
+
+
+
+ДОДАТОК А
+Код скрипту для розгортання програмної системи
+
+001 import getpass
+002
+003 # Prompts the user to enter the database password and checks if it is correct
+004 def check_database_password():
+005     correct_password = 'alLxYV4BL6MvP00z'
+006     while True:
+007         entered_password = getpass.getpass("Enter database password: ")
+008         if entered_password != correct_password:
+009             print("Incorrect password. Try again.")
+010         else:
+011             print("Password is correct.\n")
+012             break
+
+001 import os
+002 import sys
+003 import requests
+004 import subprocess
+005 import winreg
+006
+007 NODEJS_PATH = r'C:\Program Files\nodejs'
+008 NODEJS_VERSION = "20.15.0"
+009
+010 # Adds Node.js installation path to the system PATH environment variable
+011 def add_nodejs_to_path():
+012     if NODEJS_PATH not in os.environ['PATH']:
+013         os.environ['PATH'] += os.pathsep + NODEJS_PATH
+014     else:
+015         print(f"'{NODEJS_PATH}' is already in PATH.\n")
+016
+017 # Checks if Node.js is already installed on the system
+018 def is_nodejs_installed():
+019     add_nodejs_to_path()
+020     try:
+021         print("Checking if Node.js is installed")
+022         node_version = subprocess.check_output(['node', '--version'], stderr=subprocess.STDOUT, text=True, shell=True).strip()
+023         print(f"Node.js is already installed. Version: {node_version}\n")
+024         return True
+025     except (FileNotFoundError, subprocess.CalledProcessError):
+026         print("Node.js is not installed.\n")
+027         return False
+028
+029 # Downloads the Node.js installer for the specified version
+030 def download_nodejs_installer(version=NODEJS_VERSION):
+031     url = f"https://nodejs.org/dist/v{version}/node-v{version}-x64.msi"
+032     file_name = f"node-v{version}-x64.msi"
+033     print(f"Downloading Node.js {version}")
+034
+035     response = requests.get(url, stream=True)
+036     response.raise_for_status()
+037
+038     with open(file_name, "wb") as file:
+039         for chunk in response.iter_content(chunk_size=8192):
+040             file.write(chunk)
+041     print(f"Node.js installer {file_name} downloaded successfully.\n")
+042     return file_name
+043
+044 # Installs Node.js from the downloaded MSI installer
+045 def install_nodejs_from_msi(file_name):
+046     print(f"Installing {file_name}\n")
+047     try:
+048         process = subprocess.Popen(
+049             ["msiexec", "/i", file_name, "/quiet", "/norestart"],
+050             shell=True,
+051             stdout=subprocess.PIPE,
+052             stderr=subprocess.PIPE
+053         )
+054         stdout, stderr = process.communicate()
+055         if process.returncode == 0:
+056             print("Installation done successfully.\n")
+057         else:
+058             error_message = stderr.decode().strip()
+059             print(f"Installation error: {error_message}", file=sys.stderr)
+060             raise Exception(f"msiexec returned exit code {process.returncode}")
+061     except Exception as e:
+062         print(f"Installation error: {e}", file=sys.stderr)
+063         raise
+064
+065 # Retrieves the system and user PATH environment variables
+066 def get_system_and_user_path():
+067     try:
+068         with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Environment') as key:
+069             user_path, _ = winreg.QueryValueEx(key, 'Path')
+070     except FileNotFoundError:
+071         user_path = ''
+072
+073     try:
+074         with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r'SYSTEM\CurrentControlSet\Control\Session Manager\Environment') as key:
+075             system_path, _ = winreg.QueryValueEx(key, 'Path')
+076     except FileNotFoundError:
+077         system_path = ''
+078
+079     return system_path + ';' + user_path if user_path and system_path else system_path or user_path
+080
+081 # Updates the PATH environment variable with the system and user PATH
+082 def update_environment_path():
+083     try:
+084         full_path = get_system_and_user_path()
+085         os.environ['PATH'] = full_path
+086         print("Environment path has been updated.\n")
+087     except Exception as e:
+088         print(f"Failed to update environment path: {e}", file=sys.stderr)
+089         raise
+090
+091 # Verifies if Node.js is installed correctly by checking its version
+092 def verify_nodejs_installation():
+093     try:
+094         result = subprocess.check_output(["node", "-v"], shell=True, text=True)
+095         print(f"Node.js is installed: version {result.strip()}\n")
+096     except (FileNotFoundError, subprocess.CalledProcessError) as e:
+097         print(f"Error during Node.js installation: {e}", file=sys.stderr)
+098
+099 # Downloads and installs Node.js, then updates the environment PATH
+100 def install_nodejs(version=NODEJS_VERSION):
+101     try:
+102         file_name = download_nodejs_installer(version)
+103         install_nodejs_from_msi(file_name)
+104         update_environment_path()
+105         add_nodejs_to_path()
+106         verify_nodejs_installation()
+107     except Exception as e:
+108         print(f"An error occurred: {e}", file=sys.stderr)
+109         sys.exit(1)
+110
+111 # Runs the Node.js setup process if Node.js is not already installed
+112 def run_nodejs_setup():
+113     if not is_nodejs_installed():
+114         install_choice = input("Install Node.js? [yes/no]: ").strip().lower()
+115         if install_choice == 'y':
+116             install_nodejs()
+117         else:
+118             print("Node.js not installed. Exiting.")
+119             sys.exit(1)
+120     else:
+121         print("Proceeding with the project setup")
+
+001 import sys
+002 import subprocess
+003 import os
+004
+005 # Installs npm dependencies in the server directory
+006 def install_npm_dependencies():
+007     server_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "server"))
+008
+009     try:
+010         print(f"Running 'npm install' in {server_directory}...")
+011         result = subprocess.run("npm install", cwd=server_directory, check=True, text=True, capture_output=True, shell=True)
+012         print("npm install run successfully:")
+013         print(result.stdout)
+014     except subprocess.CalledProcessError as e:
+015         print(f"Error during 'npm install': {e.stderr}", file=sys.stderr)
+016         raise
+
+001 import sys
+002 import subprocess
+003 import os
+004
+005 # Starts the npm development server in the server directory
+006 def start_npm_dev_server():
+007     server_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "server"))
+008
+009     try:
+010         print(f"Running 'npm run dev' successfully in {server_directory}")
+011         print(f"Server is running at http://localhost:5000/docs")
+012
+013         result = subprocess.run("npm run dev", cwd=server_directory, check=True, text=True, capture_output=True, shell=True)
+014         print("Server started successfully:")
+015         print(result.stdout)
+016     except subprocess.CalledProcessError as e:
+017         print(f"Error during 'npm run dev': {e.stderr}", file=sys.stderr)
+018         raise
+019     except KeyboardInterrupt:
+020         print("Server stopped by user.")
+021         sys.exit(0)
+
+001 import sys
+002
+003 from db_password_check import check_database_password
+004 from nodejs_install import run_nodejs_setup
+005 from npm_install import install_npm_dependencies
+006 from npm_run import start_npm_dev_server
+007
+008 # Main function to run the setup process
+009 def main():
+010     try:
+011         check_database_password()
+012         run_nodejs_setup()
+013         install_npm_dependencies()
+014         start_npm_dev_server()
+015     except Exception as e:
+016         print(f"An error occurred: {e}", file=sys.stderr)
+017         sys.exit(1)
+018
+019 if __name__ == "__main__":
+020     main()
+ДОДАТОК Б
+Посилання на відеозвіт
+
+     Посилання: https://youtu.be/DT488xya9Js 
+
+
+
+
+
